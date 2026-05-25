@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>We Are Warriors</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:#1a1a2e}body{font-family:Arial,sans-serif;display:flex;flex-direction:column;align-items:stretch;color:#fff;touch-action:manipulation;position:fixed;inset:0}
+#wrap{width:100vw;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+canvas{display:block;width:100%;flex:1;min-height:0;touch-action:none}
+#shopbar{display:flex;gap:6px;padding:6px 8px;background:#0f0f1e;border-top:1px solid #333;flex-shrink:0}
+.sbtn{flex:1;padding:10px 6px;font-size:13px;font-weight:bold;border:1.5px solid #444;border-radius:8px;background:#1e1e3a;color:#fff;cursor:pointer;text-align:center;min-height:52px;transition:background 0.1s}
+.sbtn:active{background:#2e2e5a}
+.sbtn:disabled{opacity:0.35;cursor:not-allowed}
+.sbtn .pr{font-size:11px;color:#f5c518;display:block;margin-top:2px}
+.sbtn.mpbtn{border-color:#a78bfa;color:#a78bfa}
+#log{padding:5px 10px;background:#0a0a18;font-size:11px;color:#aaa;height:32px;overflow:hidden;line-height:1.6;border-top:1px solid #222;flex-shrink:0}
+.lp{color:#4ade80}.le{color:#f87171}.ls{color:#a78bfa;font-weight:bold}
+
+#modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:200;align-items:center;justify-content:center;flex-direction:column;padding:20px}
+#modal.show{display:flex}
+#mbox{background:#1a1a2e;border:1.5px solid #444;border-radius:16px;padding:24px 20px;width:100%;max-width:340px;text-align:center}
+#mbox h2{font-size:22px;font-weight:bold;margin-bottom:6px}
+#mbox p{font-size:12px;color:#aaa;margin-bottom:18px}
+.mbtn{display:block;width:100%;padding:12px;font-size:14px;font-weight:bold;border:1.5px solid #555;border-radius:10px;background:#2a2a4a;color:#fff;cursor:pointer;margin-bottom:8px;min-height:48px}
+.mbtn:active{background:#3a3a6a}
+.mbtn.accent{border-color:#a78bfa;color:#a78bfa}
+.mbtn.danger{border-color:#f87171;color:#f87171}
+.mbtn.green{border-color:#4ade80;color:#4ade80}
+
+#upg-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:300;overflow-y:auto}
+#upg-modal.show{display:block}
+#upg-inner{display:flex;align-items:flex-start;justify-content:center;padding:12px;min-height:100%}
+#upg-box{background:#1a1a2e;border:1.5px solid #444;border-radius:16px;padding:18px 16px;width:100%;max-width:380px}
+#upg-box h2{font-size:18px;font-weight:bold;margin-bottom:14px;text-align:center}
+.upg-sec{margin-bottom:14px}
+.upg-sec h3{font-size:11px;font-weight:bold;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.urow{display:flex;align-items:center;justify-content:space-between;padding:9px 10px;border:1px solid #333;border-radius:8px;margin-bottom:5px;background:#0f0f24}
+.urow-l span{font-size:13px;color:#fff;font-weight:bold;display:block}
+.urow-l small{font-size:11px;color:#888}
+.urow-r{display:flex;align-items:center;gap:8px}
+.ulv{font-size:11px;color:#a78bfa;min-width:32px;text-align:right}
+.ubtn{padding:7px 12px;font-size:12px;font-weight:bold;border:1px solid #555;border-radius:6px;background:#2a2a4a;color:#fff;cursor:pointer;min-height:36px}
+.ubtn:active{background:#3a3a6a}
+.ubtn:disabled{opacity:0.35;cursor:not-allowed}
+.close-upg{width:100%;padding:12px;font-size:14px;font-weight:bold;border:1.5px solid #555;border-radius:10px;background:#2a2a4a;color:#fff;cursor:pointer;margin-top:6px;min-height:48px}
+.close-upg:active{background:#3a3a6a}
+
+#mp-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:200;align-items:center;justify-content:center;padding:20px}
+#mp-modal.show{display:flex}
+#mp-box{background:#1a1a2e;border:1.5px solid #444;border-radius:16px;padding:24px 20px;width:100%;max-width:340px;text-align:center}
+#mp-box h2{font-size:20px;font-weight:bold;margin-bottom:8px}
+#mp-box p{font-size:12px;color:#aaa;margin-bottom:16px}
+.mp-badge{background:#0f0f24;border:1px solid #a78bfa;border-radius:8px;padding:14px;margin-bottom:12px;font-size:13px;color:#a78bfa;line-height:1.6}
+/* Security */
+* { -webkit-user-select:none; -moz-user-select:none; user-select:none; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="gc" width="700" height="380"></canvas>
+  <div id="shopbar">
+    <button class="sbtn" id="bs" ontouchstart="" onclick="buy('sword')">⚔️ Schwertkämpfer<span class="pr">4 Gold</span></button>
+    <button class="sbtn" id="ba" ontouchstart="" onclick="buy('archer')">🏹 Bogenschütze<span class="pr">2 Gold</span></button>
+    <button class="sbtn mpbtn" ontouchstart="" onclick="openMp()">🌐 Mehrspieler</button>
+  </div>
+  <div style="text-align:center;font-size:10px;color:#444;padding:1px 0;background:#0a0a18;flex-shrink:0;line-height:1.4">📱 Links tippen = Schwertkämpfer &nbsp;|&nbsp; Rechts tippen = Bogenschütze</div>
+  <div id="log"><span class="ls">Kaufe Soldaten — sie greifen automatisch an!</span></div>
+</div>
+
+<div id="modal">
+  <div id="mbox">
+    <h2 id="mt"></h2>
+    <p id="mp2"></p>
+    <button class="mbtn accent" id="m-upg" ontouchstart="" onclick="openUpgradesModal()">🛡️ Upgrades kaufen</button>
+    <button class="mbtn green" id="m-next" ontouchstart="" onclick="nextRound()">▶ Weiter spielen</button>
+    <button class="mbtn danger" id="m-restart" style="display:none" ontouchstart="" onclick="restartGame()">🔄 Neu starten</button>
+  </div>
+</div>
+
+<div id="upg-modal">
+  <div id="upg-inner">
+  <div id="upg-box">
+    <h2>🛡️ Upgrades</h2>
+    <div class="upg-sec">
+      <h3>Turm</h3>
+      <div class="urow">
+        <div class="urow-l"><span>Mehr LP</span><small>+400 max. HP</small></div>
+        <div class="urow-r"><span class="ulv">Lv <span id="ul-thp">0</span></span><button class="ubtn" id="ub-thp" ontouchstart="" onclick="doUpg('tower-hp')">5 🥈</button></div>
+      </div>
+    </div>
+    <div class="upg-sec">
+      <h3>⚔️ Schwertkämpfer</h3>
+      <div class="urow">
+        <div class="urow-l"><span>Mehr Leben</span><small>+30 HP pro Level</small></div>
+        <div class="urow-r"><span class="ulv">Lv <span id="ul-shp">0</span></span><button class="ubtn" id="ub-shp" ontouchstart="" onclick="doUpg('sword-hp')">3 🥈</button></div>
+      </div>
+      <div class="urow">
+        <div class="urow-l"><span>Mehr Schaden</span><small>+5 Schaden pro Level</small></div>
+        <div class="urow-r"><span class="ulv">Lv <span id="ul-sdmg">0</span></span><button class="ubtn" id="ub-sdmg" ontouchstart="" onclick="doUpg('sword-dmg')">3 🥈</button></div>
+      </div>
+    </div>
+    <div class="upg-sec">
+      <h3>🏹 Bogenschütze</h3>
+      <div class="urow">
+        <div class="urow-l"><span>Mehr Leben</span><small>+20 HP pro Level</small></div>
+        <div class="urow-r"><span class="ulv">Lv <span id="ul-ahp">0</span></span><button class="ubtn" id="ub-ahp" ontouchstart="" onclick="doUpg('archer-hp')">2 🥈</button></div>
+      </div>
+      <div class="urow">
+        <div class="urow-l"><span>Mehr Schaden</span><small>+4 Schaden pro Level</small></div>
+        <div class="urow-r"><span class="ulv">Lv <span id="ul-admg">0</span></span><button class="ubtn" id="ub-admg" ontouchstart="" onclick="doUpg('archer-dmg')">2 🥈</button></div>
+      </div>
+    </div>
+    <button class="close-upg" ontouchstart="" onclick="closeUpgradesModal()">✓ Fertig</button>
+  </div>
+  </div>
+</div>
+
+<div id="mp-modal">
+  <div id="mp-box">
+    <h2>🌐 Mehrspieler</h2>
+    <p>Spiele gegen Freunde im gleichen WLAN-Netzwerk</p>
+    <div class="mp-badge">🚧 Funktion in Entwicklung<br><small style="color:#888;font-size:11px">Kommt im nächsten Update!</small></div>
+    <p style="margin-bottom:16px">Bald: Zwei Spieler im lokalen Netz gegeneinander — jeder verteidigt seinen Turm!</p>
+    <button class="mbtn" ontouchstart="" onclick="closeMp()">← Zurück</button>
+  </div>
+</div>
+
+<script>
+const C=document.getElementById('gc'),ctx=C.getContext('2d');
+let W=700,H=380,PTX=68,ETX=632,LANE=272,TTOP=110;
+let G={gold:20,silver:0,round:1,maxSlots:4,dmgMult:1,atkMult:1};
+let upgs={towerHp:0,swordHp:0,swordDmg:0,archerHp:0,archerDmg:0,slot:0};
+let pTHP=600,pTHPmax=600,eTHP=2000,eTHPmax=2000;
+let units=[],projs=[],floats=[],clouds=[{x:90,y:38,w:110},{x:310,y:24,w:140},{x:530,y:48,w:95}];
+let running=false,paused=false,gameEnded=false,roundEnded=false,raf=0,lastTs=0,goldTick=0;
+let eSpawnQ=[],eSpawnCd=0,uid=0;
+
+const SWORD_BASE={hp:120,atk:18,range:62,cd:90,spd:0.75};
+const ARCHER_BASE={hp:65,atk:13,range:172,cd:65,spd:0.62};
+const ETYPES=[
+  {name:'Goblin',type:'sword',hp:65,atk:9,spd:0.76,silver:1,col:'#3a8020'},
+  {name:'Goblin Bogen',type:'archer',hp:42,atk:7,spd:0.62,silver:1,col:'#208060'},
+  {name:'Ork',type:'sword',hp:160,atk:20,spd:0.55,silver:2,col:'#7a4a1a'},
+  {name:'Dunkler Bogner',type:'archer',hp:90,atk:16,spd:0.50,silver:2,col:'#5a2090'},
+  {name:'Troll',type:'sword',hp:360,atk:32,spd:0.32,silver:4,col:'#2a6a2a'},
+];
+
+function getSw(){return{hp:SWORD_BASE.hp+upgs.swordHp*30,atk:SWORD_BASE.atk+upgs.swordDmg*5};}
+function getAr(){return{hp:ARCHER_BASE.hp+upgs.archerHp*20,atk:ARCHER_BASE.atk+upgs.archerDmg*4};}
+
+function log(m,c){const d=document.getElementById('log');d.innerHTML='<span'+(c?' class="'+c+'"':'')+'>'+m+'</span>';}
+
+function hud(){
+  const ps=units.filter(u=>u.side===1);
+  const busy=paused||gameEnded||roundEnded;
+  document.getElementById('bs').disabled=busy||G.gold<4;
+  document.getElementById('ba').disabled=busy||G.gold<2;
+  const ids=['ul-thp','ul-shp','ul-sdmg','ul-ahp','ul-admg'];
+  const keys=['towerHp','swordHp','swordDmg','archerHp','archerDmg'];
+  ids.forEach((id,i)=>{const el=document.getElementById(id);if(el)el.textContent=upgs[keys[i]];});
+  const upgKeys=['tower-hp','sword-hp','sword-dmg','archer-hp','archer-dmg'];
+  ['ub-thp','ub-shp','ub-sdmg','ub-ahp','ub-admg'].forEach((id,i)=>{
+    const el=document.getElementById(id);if(!el)return;
+    const c=upgCost(upgKeys[i]);
+    el.disabled=G.silver<c;
+    const btn=el;btn.textContent=c+' 🥈';
+  });
+}
+
+function buy(type){
+  if(type==='sword'&&G.gold<4)return;
+  if(type==='archer'&&G.gold<2)return;
+  G.gold-=(type==='sword'?4:2);
+  const ps=units.filter(u=>u.side===1);
+  const used=ps.map(u=>u.slot);let sl=0;while(used.includes(sl))sl++;
+  mkUnit(type,1,sl);
+  sndBuy();log((type==='sword'?'Schwertkämpfer':'Bogenschütze')+' eingestellt!','lp');
+  hud();
+}
+
+function mkUnit(type,side,slot){
+  const base=type==='sword'?SWORD_BASE:ARCHER_BASE;
+  const us=type==='sword'?getSw():getAr();
+  const sc=side===-1?(1+(G.round-1)*0.30):1;
+  const defE=ETYPES[0];
+  const hp=Math.round((side===1?us.hp:base.hp)*sc);
+  const atk=Math.round((side===1?us.atk:base.atk)*sc);
+  units.push({id:uid++,type,side,slot:slot||0,hp,maxHP:hp,atk,
+    range:type==='archer'?172:62,cd:0,atkCd:type==='archer'?65:90,
+    spd:base.spd*(side===-1?1+(G.round-1)*0.07:1),
+    alive:true,x:side===1?PTX-55:ETX+55,y:LANE,silver:0,
+    swingA:0,swinging:false,swingT:0,name:type});
+}
+
+function mkEnemy(def,sl){
+  const scHP=1+(G.round-1)*0.20;
+  const scATK=1+(G.round-1)*0.70;
+  units.push({id:uid++,type:def.type,side:-1,slot:sl||0,
+    hp:Math.round(def.hp*scHP),maxHP:Math.round(def.hp*scHP),atk:Math.round(def.atk*scATK),
+    range:def.type==='archer'?172:62,cd:0,atkCd:def.type==='archer'?65:90,
+    spd:def.spd*(1+(G.round-1)*0.07),
+    alive:true,x:ETX+55,y:LANE,silver:def.silver||1,
+    col:def.col,name:def.name,swingA:0,swinging:false,swingT:0});
+}
+
+let firstWaveDone=false,continuousSpawn=false,continuousCd=0;
+let invasionTriggered=false,invasionActive=false,invasionCd=0,invasionCount=0;
+
+function makeWave(){
+  const cnt=4+G.round*2;
+  const pool=ETYPES.slice(0,Math.min(1+Math.floor((G.round-1)/2),ETYPES.length));
+  eSpawnQ=[];firstWaveDone=false;continuousSpawn=false;
+  for(let i=0;i<cnt;i++){const d=pool[Math.floor(Math.random()*pool.length)];eSpawnQ.push({...d,delay:i===0?0:45+i*8});}
+  eSpawnCd=0;
+}
+
+function startRound(){
+  running=true;paused=false;gameEnded=false;roundEnded=false;
+  makeWave();
+  units=units.filter(u=>u.side===1&&u.alive);
+  projs=[];floats=[];
+  log('Runde '+G.round+' — KI greift an!','ls');
+  hud();lastTs=performance.now();
+  raf=requestAnimationFrame(loop);
+}
+
+function loop(ts){
+  if(paused){draw();raf=requestAnimationFrame(loop);return;}
+  const dt=Math.min(ts-lastTs,50);lastTs=ts;
+  goldTick+=dt;if(goldTick>=1000){G.gold++;goldTick=0;hud();}
+  if(eSpawnQ.length>0){
+    eSpawnCd-=dt;
+    if(eSpawnCd<=0){
+      const e=eSpawnQ.shift();
+      const used=units.filter(u=>u.side===-1).map(u=>u.slot);let sl=0;while(used.includes(sl))sl++;
+      mkEnemy(e,sl);eSpawnCd=(e.delay||45)*16;
+      if(eSpawnQ.length===0){firstWaveDone=true;continuousSpawn=true;continuousCd=0;}
+    }
+  } else if(continuousSpawn){
+    continuousCd-=dt;
+    if(continuousCd<=0){
+      const pool=ETYPES.slice(0,Math.min(1+Math.floor((G.round-1)/2),ETYPES.length));
+      const def=pool[Math.floor(Math.random()*pool.length)];
+      const used=units.filter(u=>u.side===-1).map(u=>u.slot);let sl=0;while(used.includes(sl))sl++;
+      mkEnemy(def,sl);
+      continuousCd=900+Math.random()*600;
+    }
+  }
+  /* Hoffnungsinvasion trigger */
+  if(!invasionTriggered&&eTHP>0&&eTHP<500){
+    invasionTriggered=true;invasionActive=true;invasionCd=0;invasionCount=0;
+    sndInvasion();log('☠️ HOFFNUNGSINVASION! Dutzende Feinde stürmen an!','le');
+  }
+  if(invasionActive&&invasionCount<30){
+    invasionCd-=dt;
+    if(invasionCd<=0){
+      const pool=ETYPES.slice(0,Math.min(1+Math.floor((G.round-1)/2),ETYPES.length));
+      const def=pool[Math.floor(Math.random()*pool.length)];
+      const used=units.filter(u=>u.side===-1).map(u=>u.slot);let sl=0;while(used.includes(sl))sl++;
+      mkEnemy(def,sl);
+      invasionCount++;
+      invasionCd=180+Math.random()*120;
+      if(invasionCount>=30)invasionActive=false;
+    }
+  }
+  moveUnits(dt);doCombat(dt);moveProjs(dt);updateFloats(dt);moveClouds(dt);
+  units=units.filter(u=>u.alive);draw();
+  if(!gameEnded)raf=requestAnimationFrame(loop);
+}
+
+function moveUnits(dt){
+  units.forEach(u=>{
+    if(!u.alive)return;
+    const foe=units.find(f=>f.alive&&f.side!==u.side&&Math.abs(f.x-u.x)<u.range);
+    const tIn=u.side===1?u.x+u.range>ETX:u.x-u.range<PTX;
+    if(!foe&&!tIn)u.x+=u.side*(u.spd*(dt/16));
+    u.x=Math.max(PTX-80,Math.min(ETX+80,u.x));
+    if(u.swinging){
+      u.swingT+=dt*0.016;u.swingA=Math.sin(u.swingT)*60*(u.side===1?1:-1);
+      if(u.swingT>Math.PI){u.swinging=false;u.swingA=0;u.swingT=0;}
+    }
+  });
+}
+
+function doCombat(dt){
+  units.forEach(u=>{
+    if(!u.alive)return;
+    u.cd=Math.max(0,u.cd-dt);if(u.cd>0)return;
+    const foe=units.filter(f=>f.alive&&f.side!==u.side&&Math.abs(f.x-u.x)<u.range)
+      .sort((a,b)=>u.side*(b.x*u.side-a.x*u.side))[0];
+    const tIn=u.side===1?u.x+u.range>ETX:u.x-u.range<PTX;
+    if(foe){
+      const dmg=Math.round(u.atk*(u.side===1?G.dmgMult:1));
+      foe.hp-=dmg;u.cd=u.atkCd*16/G.atkMult;
+      if(u.type==='sword'){u.swinging=true;u.swingT=0;sndSword();}
+      else{sndArrow();}
+      floats.push({x:foe.x,y:foe.y-28,text:'-'+dmg,col:'#fbbf24',a:1,life:700});
+      if(u.type==='archer')projs.push({x:u.x+(u.side===1?12:-12),y:u.y-16,tx:foe.x,ty:foe.y-14,spd:9,col:u.side===1?'#a78bfa':'#f87171',r:3.5});
+      if(foe.hp<=0){foe.alive=false;if(foe.side===-1&&foe.silver){G.silver+=foe.silver;floats.push({x:foe.x,y:foe.y-50,text:'+'+foe.silver+' Silber',col:'#b0b0b0',a:1,life:950});hud();}}
+    } else if(!foe&&tIn){
+      const dmg=Math.round(u.atk*(u.side===1?G.dmgMult:1));
+      if(u.side===1){eTHP=Math.max(0,eTHP-dmg);sndHit();floats.push({x:ETX,y:TTOP,text:'-'+dmg,col:'#fbbf24',a:1,life:700});if(eTHP<=0&&!gameEnded){endGame(true);return;}}
+      else{pTHP=Math.max(0,pTHP-dmg);floats.push({x:PTX,y:TTOP,text:'-'+dmg,col:'#f87171',a:1,life:700});if(pTHP<=0&&!gameEnded){endGame(false);return;}}
+      u.cd=u.atkCd*16/G.atkMult;
+      if(u.type==='sword'){u.swinging=true;u.swingT=0;}
+    }
+  });
+}
+
+function moveProjs(dt){
+  projs=projs.filter(p=>{
+    const dx=p.tx-p.x,dy=p.ty-p.y,d=Math.sqrt(dx*dx+dy*dy);
+    if(d<p.spd*2)return false;p.x+=dx/d*p.spd;p.y+=dy/d*p.spd;return true;
+  });
+}
+function updateFloats(dt){floats=floats.filter(f=>{f.life-=dt;f.y-=0.22;f.a=Math.max(0,f.life/700);return f.life>0;});}
+function moveClouds(dt){clouds.forEach(c=>{c.x+=0.055*(dt/16);if(c.x>W+150)c.x=-150;});}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  drawBG();
+  drawTower(PTX,'Dein Turm',pTHP,pTHPmax,true);
+  drawTower(ETX,'Feind',eTHP,eTHPmax,false);
+  ctx.fillStyle='rgba(0,0,0,0.12)';ctx.fillRect(PTX+44,LANE+14,ETX-PTX-88,5);
+  units.filter(u=>u.alive).forEach(drawChar);
+  projs.forEach(p=>{ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();});
+  floats.forEach(f=>{ctx.globalAlpha=Math.max(0,f.a);ctx.font='bold 12px Arial';ctx.fillStyle=f.col;ctx.textAlign='center';ctx.fillText(f.text,f.x,f.y);ctx.globalAlpha=1;ctx.textAlign='left';});
+  drawHUD();
+}
+
+function drawHUD(){
+  /* gold/silver panel bottom-left of canvas */
+  ctx.fillStyle='rgba(0,0,0,0.65)';ctx.beginPath();ctx.roundRect(8,H-52,165,44,8);ctx.fill();
+  ctx.font='bold 14px Arial';ctx.fillStyle='#f5c518';ctx.fillText('💰 '+G.gold+' Gold',16,H-32);
+  ctx.fillStyle='#b0b0b0';ctx.fillText('🥈 '+G.silver+' Silber',16,H-13);
+  /* round badge center */
+  ctx.fillStyle='rgba(0,0,0,0.65)';ctx.beginPath();ctx.roundRect(W/2-52,8,104,26,6);ctx.fill();
+  ctx.font='bold 13px Arial';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText('Runde '+G.round,W/2,26);ctx.textAlign='left';
+  if(invasionTriggered){
+    const pulse=0.6+0.4*Math.sin(Date.now()/180);
+    ctx.globalAlpha=pulse;
+    ctx.fillStyle='rgba(180,0,0,0.85)';ctx.beginPath();ctx.roundRect(W/2-120,38,240,28,6);ctx.fill();
+    ctx.font='bold 14px Arial';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText('☠️ HOFFNUNGSINVASION!',W/2,57);
+    ctx.textAlign='left';ctx.globalAlpha=1;
+  }
+}
+
+function drawBG(){
+  const g=ctx.createLinearGradient(0,0,0,H*0.56);g.addColorStop(0,'#5a9ed4');g.addColorStop(1,'#8ec8e8');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H*0.56);
+  ctx.fillStyle='rgba(255,230,80,0.9)';ctx.beginPath();ctx.arc(W-62,44,22,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='rgba(255,210,50,0.5)';ctx.lineWidth=2.5;
+  for(let i=0;i<8;i++){const a=i*Math.PI/4;ctx.beginPath();ctx.moveTo(W-62+Math.cos(a)*26,44+Math.sin(a)*26);ctx.lineTo(W-62+Math.cos(a)*34,44+Math.sin(a)*34);ctx.stroke();}
+  ctx.fillStyle='rgba(255,255,255,0.88)';
+  clouds.forEach(c=>{ctx.beginPath();ctx.ellipse(c.x,c.y,c.w/2,15,0,0,Math.PI*2);ctx.ellipse(c.x+c.w*0.26,c.y-13,c.w*0.33,13,0,0,Math.PI*2);ctx.ellipse(c.x-c.w*0.22,c.y-10,c.w*0.27,11,0,0,Math.PI*2);ctx.fill();});
+  const g2=ctx.createLinearGradient(0,H*0.55,0,H*0.73);g2.addColorStop(0,'#5aaa38');g2.addColorStop(1,'#3a8818');
+  ctx.fillStyle=g2;ctx.fillRect(0,H*0.55,W,H*0.18);
+  ctx.fillStyle='#6a4a20';ctx.fillRect(0,H*0.73,W,H*0.27);
+}
+
+function drawTower(tx,label,hp,maxHP,isP){
+  const tw=54,ty=TTOP,tx2=tx-tw/2;
+  const groundY=LANE+16; // tower reaches the ground
+  const towerH=groundY-ty;
+  // main tower body from top to ground
+  ctx.fillStyle=isP?'#5a3d18':'#3d1a50';ctx.fillRect(tx2,ty,tw,towerH);
+  // battlements at top
+  ctx.fillStyle=isP?'#7a5520':'#602080';ctx.fillRect(tx2-8,ty,tw+16,30);
+  for(let i=0;i<3;i++){ctx.fillStyle=isP?'#3d2a10':'#2a0a40';ctx.fillRect(tx2-8+i*24,ty,15,19);}
+  // flag/spire
+  ctx.fillStyle=isP?'#c0392b':'#7c3aed';ctx.beginPath();ctx.moveTo(tx,ty-28);ctx.lineTo(tx-8,ty-4);ctx.lineTo(tx+8,ty-4);ctx.closePath();ctx.fill();
+  // base foundation on ground
+  ctx.fillStyle=isP?'#3a2810':'#2a1040';ctx.fillRect(tx2-10,groundY-8,tw+20,12);
+  // hp bar above tower
+  const pct=Math.max(0,hp/maxHP);
+  ctx.fillStyle='#333';ctx.fillRect(tx2,ty-20,tw,7);
+  ctx.fillStyle=isP?(pct>0.5?'#4ade80':pct>0.25?'#fbbf24':'#f87171'):(pct>0.5?'#f87171':pct>0.25?'#e05010':'#c00000');ctx.fillRect(tx2,ty-20,tw*pct,7);
+  ctx.font='bold 11px Arial';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText(Math.max(0,Math.round(hp))+'/'+maxHP,tx,ty-23);
+  ctx.font='10px Arial';ctx.fillStyle='rgba(255,255,255,0.85)';ctx.fillText(label,tx,ty-34);ctx.textAlign='left';
+}
+
+function drawChar(u){
+  const x=u.x,y=u.y,bob=Math.sin(Date.now()/230+u.id*2.7)*1.8,by=y+bob;
+  const isE=u.side===-1;
+  ctx.save();
+  if(isE){ctx.translate(x,0);ctx.scale(-1,1);ctx.translate(-x,0);}
+  /* colors */
+  const hc=isE?(u.type==='sword'?'#3a6020':'#1a5070'):'#888';
+  const bc=isE?(u.type==='sword'?'#4a8030':'#2a6090'):(u.type==='sword'?'#c0392b':'#4a30a0');
+  const sc=isE?'#5ab040':'#3a7ad0';
+  /* skin */
+  ctx.fillStyle='#d4956a';ctx.beginPath();ctx.ellipse(x,by-40,9,10,0,0,Math.PI*2);ctx.fill();
+  /* helmet */
+  ctx.fillStyle=hc;ctx.beginPath();ctx.moveTo(x-12,by-46);ctx.quadraticCurveTo(x,by-64,x+12,by-46);ctx.closePath();ctx.fill();
+  ctx.fillRect(x-13,by-50,26,8);
+  if(!isE){ctx.strokeStyle='#c0392b';ctx.lineWidth=3;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x,by-64);ctx.quadraticCurveTo(x+6,by-76,x+4,by-86);ctx.stroke();}
+  /* body */
+  ctx.fillStyle=bc;ctx.fillRect(x-11,by-30,22,24);
+  ctx.fillStyle=sc;ctx.fillRect(x-16,by-30,8,10);ctx.fillRect(x+8,by-30,8,10);
+  /* belt */
+  ctx.fillStyle='#3a2a10';ctx.fillRect(x-11,by-8,22,5);ctx.fillStyle='#f5c518';ctx.fillRect(x-4,by-8,8,5);
+  /* legs */
+  ctx.fillStyle='#2a1a08';ctx.fillRect(x-9,by-3,8,17);ctx.fillRect(x+1,by-3,8,17);
+  ctx.fillStyle='#1a100a';ctx.fillRect(x-10,by+12,10,7);ctx.fillRect(x,by+12,10,7);
+  /* eyes */
+  ctx.fillStyle='#111';ctx.beginPath();ctx.arc(x-3,by-42,2.5,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(x+4,by-42,2.5,0,Math.PI*2);ctx.fill();
+  if(isE){ctx.fillStyle='#f00';ctx.beginPath();ctx.arc(x-3,by-42,1.5,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(x+4,by-42,1.5,0,Math.PI*2);ctx.fill();}
+
+  /* SWORD ANIMATION */
+  if(u.type==='sword'){
+    const angle=(u.swingA||0)*Math.PI/180;
+    ctx.save();ctx.translate(x+10,by-22);ctx.rotate(angle);
+    ctx.strokeStyle='#d8d8d8';ctx.lineWidth=3.5;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(20,-22);ctx.stroke();
+    ctx.fillStyle='#ececec';ctx.beginPath();ctx.moveTo(20,-22);ctx.lineTo(25,-16);ctx.lineTo(17,-13);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#c8a000';ctx.fillRect(-5,-3,10,5);
+    ctx.fillStyle='#6a3a10';ctx.fillRect(-4,2,7,10);
+    ctx.restore();
+    /* shield */
+    ctx.fillStyle='#7a3a10';ctx.beginPath();ctx.roundRect(x-23,by-28,14,20,3);ctx.fill();
+    ctx.strokeStyle='#aaa';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x-16,by-18,7,0,Math.PI*2);ctx.stroke();
+    ctx.strokeStyle='#888';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x-16,by-25);ctx.lineTo(x-16,by-11);ctx.stroke();ctx.beginPath();ctx.moveTo(x-23,by-18);ctx.lineTo(x-9,by-18);ctx.stroke();
+  } else {
+    /* BOW */
+    ctx.strokeStyle='#7a4a1a';ctx.lineWidth=4;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(x-14,by-12);ctx.quadraticCurveTo(x-27,by-26,x-14,by-42);ctx.stroke();
+    ctx.strokeStyle='#ddd';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x-14,by-42);ctx.lineTo(x+14,by-26);ctx.stroke();ctx.beginPath();ctx.moveTo(x-14,by-12);ctx.lineTo(x+14,by-26);ctx.stroke();
+    ctx.strokeStyle='#c0c0c0';ctx.lineWidth=2;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x-6,by-26);ctx.lineTo(x+14,by-26);ctx.stroke();
+    ctx.fillStyle='#aaa';ctx.beginPath();ctx.moveTo(x+14,by-26);ctx.lineTo(x+10,by-30);ctx.lineTo(x+10,by-22);ctx.closePath();ctx.fill();
+  }
+  ctx.restore();
+  /* hp bar */
+  const pct=Math.max(0,u.hp/u.maxHP);
+  ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(x-15,by-70,30,5);
+  ctx.fillStyle=u.side===1?(pct>0.5?'#4ade80':pct>0.25?'#fbbf24':'#f87171'):(pct>0.5?'#f87171':pct>0.25?'#e05010':'#c00000');ctx.fillRect(x-15,by-70,30*pct,5);
+}
+
+function fullReset(){
+  G={gold:20,silver:0,round:G.round,maxSlots:4,dmgMult:1,atkMult:1};
+  pTHP=600;pTHPmax=600;eTHP=2000;eTHPmax=2000;
+  units=[];projs=[];floats=[];
+  gameEnded=false;paused=false;roundEnded=false;
+  firstWaveDone=false;continuousSpawn=false;continuousCd=0;goldTick=0;
+  invasionTriggered=false;invasionActive=false;invasionCd=0;invasionCount=0;
+}
+
+function endGame(won){
+  gameEnded=true;running=false;paused=true;cancelAnimationFrame(raf);draw();
+  document.getElementById('mt').textContent=won?'SIEG! 🏆':'NIEDERLAGE! 💀';
+  document.getElementById('mp2').textContent=won?'Feind-Turm zerstört! Runde '+G.round+' geschafft! Upgrades kaufen?':'Dein Turm fiel in Runde '+G.round+'. Upgrades kaufen und neu versuchen?';
+  document.getElementById('m-restart').style.display='none';
+  document.getElementById('m-upg').style.display='block';
+  document.getElementById('m-next').textContent='▶ Nächste Runde';
+  document.getElementById('modal').classList.add('show');
+  if(won)sndVictory();else sndDefeat();
+  log(won?'SIEG! Feind-Turm zerstört!':'NIEDERLAGE! Turm gefallen.',won?'lp':'le');hud();
+}
+
+function nextRound(){
+  document.getElementById('modal').classList.remove('show');
+  if(eTHP<=0)G.round++;
+  fullReset();
+  startRound();
+}
+function restartGame(){
+  document.getElementById('modal').classList.remove('show');
+  G.round=1;
+  upgs={towerHp:0,swordHp:0,swordDmg:0,archerHp:0,archerDmg:0,slot:0};
+  fullReset();
+  log('Neues Spiel! Viel Erfolg!','ls');startRound();
+}
+
+function openUpgradesModal(){
+  document.getElementById('modal').classList.remove('show');
+  document.getElementById('upg-modal').classList.add('show');hud();
+}
+function closeUpgradesModal(){
+  document.getElementById('upg-modal').classList.remove('show');
+  document.getElementById('modal').classList.add('show');hud();
+}
+function upgCost(key){
+  const base={'tower-hp':5,'sword-hp':3,'sword-dmg':3,'archer-hp':2,'archer-dmg':2};
+  const lv={'tower-hp':upgs.towerHp,'sword-hp':upgs.swordHp,'sword-dmg':upgs.swordDmg,'archer-hp':upgs.archerHp,'archer-dmg':upgs.archerDmg};
+  return base[key]+Math.floor(lv[key]/2);
+}
+function doUpg(key){
+  const c=upgCost(key);if(G.silver<c)return;
+  G.silver-=c;
+  if(key==='tower-hp'){upgs.towerHp++;pTHPmax+=200;pTHP=Math.min(pTHPmax,pTHP+200);}
+  else if(key==='sword-hp')upgs.swordHp++;
+  else if(key==='sword-dmg')upgs.swordDmg++;
+  else if(key==='archer-hp')upgs.archerHp++;
+  else if(key==='archer-dmg')upgs.archerDmg++;
+  log('Upgrade gekauft!','lp');hud();
+}
+function openMp(){document.getElementById('mp-modal').classList.add('show');}
+function closeMp(){document.getElementById('mp-modal').classList.remove('show');}
+
+/* Resize canvas to fill full screen */
+function resizeCanvas(){
+  const shopH=document.getElementById('shopbar').offsetHeight;
+  const hintH=document.querySelector('#wrap>div[style]') ? document.querySelector('#wrap>div[style]').offsetHeight : 0;
+  const logH=document.getElementById('log').offsetHeight;
+  const totalH=window.innerHeight;
+  const totalW=window.innerWidth;
+  const availH=totalH-shopH-hintH-logH;
+  C.style.width=totalW+'px';
+  C.style.height=availH+'px';
+  C.width=totalW;
+  C.height=availH;
+  W=totalW; H=availH;
+  PTX=Math.round(totalW*0.097);
+  ETX=Math.round(totalW*0.903);
+  LANE=Math.round(availH*0.72);
+  TTOP=Math.round(availH*0.29);
+}
+window.addEventListener('resize',()=>{resizeCanvas();});
+window.addEventListener('orientationchange',()=>{setTimeout(resizeCanvas,200);});
+
+/* Touch: tap left half = buy sword, tap right half = buy archer */
+C.addEventListener('touchstart',function(e){
+  e.preventDefault();
+  const t=e.changedTouches[0];
+  const rect=C.getBoundingClientRect();
+  const tx=(t.clientX-rect.left)/rect.width;
+  if(tx<0.5) buy('sword');
+  else buy('archer');
+},{passive:false});
+
+/* Sound system */
+let audioCtx=null;
+function getAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+function playSound(freq,type,dur,vol){
+  try{
+    const a=getAudio(),o=a.createOscillator(),g=a.createGain();
+    o.connect(g);g.connect(a.destination);
+    o.type=type||'square';o.frequency.setValueAtTime(freq,a.currentTime);
+    g.gain.setValueAtTime(vol||0.15,a.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+dur);
+    o.start(a.currentTime);o.stop(a.currentTime+dur);
+  }catch(e){}
+}
+function sndSword(){playSound(220,'sawtooth',0.12,0.18);setTimeout(()=>playSound(180,'sawtooth',0.08,0.12),60);}
+function sndArrow(){playSound(600,'sine',0.07,0.1);}
+function sndHit(){playSound(150,'square',0.1,0.12);}
+function sndBuy(){playSound(440,'sine',0.1,0.1);setTimeout(()=>playSound(550,'sine',0.1,0.1),80);}
+function sndVictory(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>playSound(f,'sine',0.3,0.15),i*120));}
+function sndDefeat(){[400,300,200].forEach((f,i)=>setTimeout(()=>playSound(f,'sawtooth',0.3,0.15),i*150));}
+function sndInvasion(){playSound(100,'sawtooth',0.6,0.2);setTimeout(()=>playSound(150,'sawtooth',0.4,0.2),200);}
+/* Security measures */
+document.addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('keydown',function(e){
+  if((e.ctrlKey||e.metaKey)&&(e.key==='u'||e.key==='s'||e.key==='i'||e.key==='j'||e.key==='c'))e.preventDefault();
+  if(e.key==='F12')e.preventDefault();
+});
+/* Anti-tamper: freeze critical game object */
+const _origG=JSON.stringify(G);
+let _secTick=0;
+setInterval(function(){
+  _secTick++;
+  if(typeof G==='undefined'||typeof units==='undefined'){location.reload();}
+  if(G.gold>99999||G.silver>99999){G.gold=20;G.silver=0;log('Manipulierung erkannt!','le');}
+},2000);
+resizeCanvas();
+startRound();
+</script>
+</body>
+</html>
